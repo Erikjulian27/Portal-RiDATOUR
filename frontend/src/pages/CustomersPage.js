@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Textarea } from '../components/ui/textarea';
@@ -65,9 +65,9 @@ const CustomersPage = () => {
         await api.post('/customers', formData);
         toast.success('Customer created successfully');
       }
-      setDialogOpen(false);
       resetForm();
-      fetchCustomers();
+      setDialogOpen(false);
+      await fetchCustomers();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Operation failed');
     }
@@ -162,6 +162,9 @@ const CustomersPage = () => {
                 <DialogTitle className="font-heading">
                   {editingCustomer ? t('edit') + ' ' + t('customers') : t('newCustomer')}
                 </DialogTitle>
+                <DialogDescription>
+                  {editingCustomer ? 'Update customer information' : 'Add a new customer to the database'}
+                </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                 <div className="grid grid-cols-2 gap-4">

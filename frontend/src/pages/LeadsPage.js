@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Textarea } from '../components/ui/textarea';
@@ -79,9 +79,9 @@ const LeadsPage = () => {
         await api.post('/leads', formData);
         toast.success('Lead created successfully');
       }
-      setDialogOpen(false);
       resetForm();
-      fetchLeads();
+      setDialogOpen(false);
+      await fetchLeads();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Operation failed');
     }
@@ -181,6 +181,9 @@ const LeadsPage = () => {
                 <DialogTitle className="font-heading">
                   {editingLead ? t('edit') + ' ' + t('leads') : t('newLead')}
                 </DialogTitle>
+                <DialogDescription>
+                  {editingLead ? 'Update lead information' : 'Add a new lead to the system'}
+                </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                 <div className="grid grid-cols-2 gap-4">

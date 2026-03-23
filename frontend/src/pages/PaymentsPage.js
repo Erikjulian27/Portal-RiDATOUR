@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Textarea } from '../components/ui/textarea';
@@ -56,9 +56,9 @@ const PaymentsPage = () => {
     try {
       await api.post('/payments', formData);
       toast.success('Payment recorded successfully');
-      setDialogOpen(false);
       resetForm();
-      fetchData();
+      setDialogOpen(false);
+      await fetchData();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Operation failed');
     }
@@ -165,6 +165,7 @@ const PaymentsPage = () => {
             <DialogContent className="max-w-lg">
               <DialogHeader>
                 <DialogTitle className="font-heading">{t('newPayment')}</DialogTitle>
+                <DialogDescription>Record a new payment for a booking</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                 <div className="space-y-2">
@@ -357,6 +358,7 @@ const PaymentsPage = () => {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="font-heading">{t('uploadProof')}</DialogTitle>
+            <DialogDescription>Upload payment proof document</DialogDescription>
           </DialogHeader>
           <div className="mt-4">
             <input

@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Textarea } from '../components/ui/textarea';
@@ -74,9 +74,9 @@ const BookingsPage = () => {
     try {
       await api.post('/bookings', formData);
       toast.success('Booking created successfully');
-      setDialogOpen(false);
       resetForm();
-      fetchData();
+      setDialogOpen(false);
+      await fetchData();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Operation failed');
     }
@@ -169,6 +169,7 @@ const BookingsPage = () => {
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="font-heading">{t('newBooking')}</DialogTitle>
+                <DialogDescription>Create a new booking for a customer</DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                 <div className="space-y-2">

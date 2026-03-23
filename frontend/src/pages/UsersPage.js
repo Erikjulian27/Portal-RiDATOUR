@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { toast } from 'sonner';
@@ -71,9 +71,9 @@ const UsersPage = () => {
         await api.post('/auth/register', formData);
         toast.success('User created successfully');
       }
-      setDialogOpen(false);
       resetForm();
-      fetchUsers();
+      setDialogOpen(false);
+      await fetchUsers();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Operation failed');
     }
@@ -163,6 +163,9 @@ const UsersPage = () => {
                 <DialogTitle className="font-heading">
                   {editingUser ? 'Edit User' : 'Add New User'}
                 </DialogTitle>
+                <DialogDescription>
+                  {editingUser ? 'Update user account details' : 'Create a new user account'}
+                </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                 <div className="space-y-2">

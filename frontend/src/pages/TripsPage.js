@@ -6,7 +6,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { Textarea } from '../components/ui/textarea';
@@ -78,9 +78,9 @@ const TripsPage = () => {
         await api.post('/trips', formData);
         toast.success('Trip created successfully');
       }
-      setDialogOpen(false);
       resetForm();
-      fetchTrips();
+      setDialogOpen(false);
+      await fetchTrips();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Operation failed');
     }
@@ -189,6 +189,9 @@ const TripsPage = () => {
                 <DialogTitle className="font-heading">
                   {editingTrip ? t('edit') + ' ' + t('trips') : t('newTrip')}
                 </DialogTitle>
+                <DialogDescription>
+                  {editingTrip ? 'Update trip details' : 'Create a new trip package'}
+                </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                 <div className="grid grid-cols-2 gap-4">
