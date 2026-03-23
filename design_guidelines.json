@@ -1,0 +1,154 @@
+{
+  "brand_identity": {
+    "name": "RiDATOUR",
+    "ethos": "Modern Efficiency meets Spiritual Journey",
+    "aesthetic": "Clean SaaS (Stripe/Linear inspired) with Royal Accents",
+    "logo_concept": "Purple background, White/Gold text, Airplane motif (Use Lucide 'Plane' icon if SVG unavailable)"
+  },
+  "typography": {
+    "primary_font": "Plus Jakarta Sans, Inter, sans-serif",
+    "headings": {
+      "family": "Plus Jakarta Sans",
+      "weights": {
+        "h1": "font-bold text-3xl tracking-tight text-slate-900",
+        "h2": "font-semibold text-2xl tracking-tight text-slate-900",
+        "h3": "font-medium text-xl text-slate-900"
+      }
+    },
+    "body": {
+      "family": "Inter",
+      "sizes": {
+        "base": "text-sm leading-relaxed text-slate-600",
+        "small": "text-xs text-slate-500"
+      }
+    }
+  },
+  "colors": {
+    "palette": {
+      "primary": {
+        "DEFAULT": "#6d28d9",
+        "hover": "#5b21b6",
+        "foreground": "#ffffff",
+        "description": "Violet 700 - Used for primary actions, active states, and brand identity."
+      },
+      "secondary": {
+        "DEFAULT": "#f8fafc",
+        "hover": "#f1f5f9",
+        "foreground": "#0f172a",
+        "description": "Slate 50/100 - Used for backgrounds, subtle buttons."
+      },
+      "accent": {
+        "DEFAULT": "#d97706",
+        "light": "#fef3c7",
+        "foreground": "#ffffff",
+        "description": "Amber 600 - Used for status badges, premium tags, and highlights."
+      },
+      "background": {
+        "page": "#ffffff",
+        "subtle": "#f8fafc",
+        "sidebar": "#ffffff"
+      },
+      "border": {
+        "DEFAULT": "#e2e8f0",
+        "focus": "#8b5cf6"
+      },
+      "text": {
+        "main": "#0f172a",
+        "muted": "#64748b",
+        "inverted": "#ffffff"
+      }
+    },
+    "semantic_usage": {
+      "sidebar_bg": "bg-white border-r border-slate-100",
+      "header_bg": "bg-white/80 backdrop-blur-md border-b border-slate-100",
+      "card_bg": "bg-white shadow-sm border border-slate-100",
+      "success": "text-emerald-600 bg-emerald-50 border-emerald-100",
+      "warning": "text-amber-600 bg-amber-50 border-amber-100",
+      "danger": "text-rose-600 bg-rose-50 border-rose-100"
+    }
+  },
+  "layout_strategy": {
+    "structure": "Sidebar Navigation (Left) + Sticky Header (Top) + Scrollable Content Area",
+    "spacing": {
+      "page_padding": "p-6 md:p-8 lg:p-10",
+      "card_padding": "p-6",
+      "grid_gap": "gap-6"
+    },
+    "dashboard_grid": {
+      "type": "Bento Grid",
+      "className": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+    },
+    "containers": {
+      "main": "max-w-7xl mx-auto w-full",
+      "auth_split": "grid lg:grid-cols-2 h-screen w-full overflow-hidden"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-lg shadow-sm font-medium transition-all active:scale-95",
+      "secondary": "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 h-10 px-4 py-2 rounded-lg font-medium transition-all active:scale-95",
+      "ghost": "hover:bg-slate-100 text-slate-600 hover:text-slate-900 h-10 px-4 py-2 rounded-lg transition-colors",
+      "destructive": "bg-rose-600 text-white hover:bg-rose-700 h-10 px-4 py-2 rounded-lg shadow-sm transition-all"
+    },
+    "cards": {
+      "base": "rounded-xl border border-slate-100 bg-white text-slate-950 shadow-sm",
+      "stats": "p-6 flex flex-col gap-2 hover:shadow-md transition-shadow duration-200"
+    },
+    "inputs": {
+      "base": "flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+    },
+    "tables": {
+      "wrapper": "rounded-md border border-slate-200 overflow-hidden",
+      "header": "bg-slate-50 hover:bg-slate-100 text-slate-500 font-medium",
+      "row": "hover:bg-slate-50/50 transition-colors border-b border-slate-100 last:border-0"
+    },
+    "badges": {
+      "base": "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+      "default": "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+      "outline": "text-foreground",
+      "status_paid": "border-emerald-200 bg-emerald-50 text-emerald-700",
+      "status_pending": "border-amber-200 bg-amber-50 text-amber-700",
+      "status_failed": "border-rose-200 bg-rose-50 text-rose-700"
+    }
+  },
+  "assets": {
+    "images": [
+      {
+        "category": "auth_hero",
+        "url": "https://images.unsplash.com/photo-1760567091079-1718d34a36c9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwyfHxtb2Rlcm4lMjBhaXJwbGFuZSUyMHRyYXZlbCUyMGNvbmNlcHR8ZW58MHx8fHwxNzc0MjY1ODg3fDA&ixlib=rb-4.1.0&q=85",
+        "description": "Modern airport terminal at dusk - Professional, Global, Efficient. Use for Login Page Right Panel."
+      },
+      {
+        "category": "marketing_hero",
+        "url": "https://images.unsplash.com/photo-1771170983433-1576bc4a7eec?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzJ8MHwxfHNlYXJjaHwyfHxtZWNjYSUyMGthYWJhJTIwbWluaW1hbGlzdHxlbnwwfHx8fDE3NzQyNjU4ODh8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Kaaba at Night with Gold trim - Spiritual, Premium. Use for Hajj/Umrah package headers."
+      },
+      {
+        "category": "placeholder_avatar",
+        "url": "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+        "description": "Default avatar for users."
+      }
+    ],
+    "icons": {
+      "library": "lucide-react",
+      "recommended": ["Plane", "Map", "Users", "CreditCard", "FileText", "Settings", "LayoutDashboard", "CheckCircle", "XCircle", "AlertCircle"]
+    }
+  },
+  "universal_guidelines": [
+    "ALL interactive elements MUST have a data-testid attribute (e.g., data-testid='submit-login').",
+    "Use 'sonner' for all toast notifications.",
+    "Do not use native HTML <select> or <input type='date'>. Use Shadcn Select and Calendar/Popover.",
+    "Ensure 200% spacing in layouts compared to standard Bootstrap sites. Space is luxury.",
+    "Never use pure black (#000000). Use Slate-900 or Violet-950.",
+    "Tables should have sticky headers for long lists.",
+    "Forms must be broken into logical sections with clear headings.",
+    "Support Bilingual UI (EN/ID) - Prepare strings for i18n wrapping."
+  ],
+  "instructions_to_main_agent": [
+    "1. Install 'lucide-react', 'recharts', 'clsx', 'tailwind-merge', 'sonner' first.",
+    "2. Setup the Layout wrapper with Sidebar and Navbar immediately.",
+    "3. Implement the Dashboard view first to establish the visual language.",
+    "4. Use the defined color palette in tailwind.config.js before building components.",
+    "5. For the Logo, create a component 'Logo.js' that uses the Plane icon and text, styled with the Brand colors."
+  ]
+}
