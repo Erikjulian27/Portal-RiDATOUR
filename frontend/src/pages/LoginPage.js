@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { Logo } from '../components/Logo';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
@@ -17,6 +16,8 @@ const LoginPage = () => {
   const { login } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+
+  const LOGO_URL = "https://customer-assets.emergentagent.com/job_hajj-ops-1/artifacts/7t8146sg_logo-ridatour.png";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,7 +39,11 @@ const LoginPage = () => {
       <div className="flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md space-y-8">
           <div className="flex justify-center">
-            <Logo size="large" />
+            <img 
+              src={LOGO_URL} 
+              alt="RiDATOUR" 
+              className="h-20 w-auto object-contain"
+            />
           </div>
 
           <Card className="border-0 shadow-none">
