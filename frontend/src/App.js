@@ -5,6 +5,7 @@ import { LanguageProvider } from "./context/LanguageContext";
 import { Toaster } from "./components/ui/sonner";
 import Layout from "./components/Layout";
 import LoginPage from "./pages/LoginPage";
+import AcceptInvitePage from "./pages/AcceptInvitePage";
 import DashboardPage from "./pages/DashboardPage";
 import LeadsPage from "./pages/LeadsPage";
 import CustomersPage from "./pages/CustomersPage";
@@ -13,6 +14,7 @@ import BookingsPage from "./pages/BookingsPage";
 import PaymentsPage from "./pages/PaymentsPage";
 import DocumentsPage from "./pages/DocumentsPage";
 import UsersPage from "./pages/UsersPage";
+import SettingsPage from "./pages/SettingsPage";
 import "./App.css";
 
 const PrivateRoute = ({ children, allowedRoles }) => {
@@ -54,6 +56,8 @@ const AppRoutes = () => {
         isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />
       } />
       
+      <Route path="/accept-invite" element={<AcceptInvitePage />} />
+      
       <Route path="/" element={
         <PrivateRoute>
           <Layout />
@@ -94,6 +98,11 @@ const AppRoutes = () => {
         <Route path="users" element={
           <PrivateRoute allowedRoles={['super_admin', 'branch_manager']}>
             <UsersPage />
+          </PrivateRoute>
+        } />
+        <Route path="settings" element={
+          <PrivateRoute allowedRoles={['super_admin']}>
+            <SettingsPage />
           </PrivateRoute>
         } />
       </Route>

@@ -13,7 +13,8 @@ import {
   FileText, 
   Settings,
   LogOut,
-  ChevronRight
+  ChevronRight,
+  Sliders
 } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 
@@ -75,6 +76,12 @@ const Sidebar = () => {
       icon: Users, 
       label: t('users'),
       roles: ['super_admin', 'branch_manager']
+    },
+    { 
+      path: '/settings', 
+      icon: Sliders, 
+      label: t('settings'),
+      roles: ['super_admin']
     },
   ];
 

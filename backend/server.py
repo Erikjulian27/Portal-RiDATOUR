@@ -5,6 +5,7 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
+import asyncio
 from pathlib import Path
 from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional
@@ -13,6 +14,7 @@ from datetime import datetime, timezone, timedelta
 import jwt
 import bcrypt
 import requests
+import resend
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -32,6 +34,12 @@ STORAGE_URL = "https://integrations.emergentagent.com/objstore/api/v1/storage"
 EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY")
 APP_NAME = "ridatour"
 storage_key = None
+
+# Resend Email Config
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://hajj-ops-1.preview.emergentagent.com")
+resend.api_key = RESEND_API_KEY
 
 # Create the main app
 app = FastAPI(title="RiDATOUR API")
@@ -269,6 +277,43 @@ class DocumentResponse(BaseModel):
     mahram_doc_url: Optional[str] = None
     created_at: str
     updated_at: str
+
+# ================== SETTINGS & INVITE MODELS ==================
+class SlideCreate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    order: int = 0
+
+class SlideResponse(BaseModel):
+    id: str
+    image_url: str
+    title: Optional[str]
+    description: Optional[str]
+    order: int
+    is_active: bool
+    created_at: str
+
+class InviteCreate(BaseModel):
+    email: EmailStr
+    full_name: str
+    role: str
+    branch: Optional[str] = None
+
+class InviteResponse(BaseModel):
+    id: str
+    email: str
+    full_name: str
+    role: str
+    branch: Optional[str]
+    status: str  # pending, accepted, expired
+    invited_by: str
+    invited_by_name: Optional[str] = None
+    created_at: str
+    expires_at: str
+
+class SetPasswordRequest(BaseModel):
+    token: str
+    password: str
 
 # ================== HELPER FUNCTIONS ==================
 def hash_password(password: str) -> str:
@@ -925,10 +970,252 @@ async def get_dashboard_stats(user: dict = Depends(get_current_user)):
 async def get_branches():
     return {
         "branches": [
-            {"id": "ccm", "name": "RiDATOUR CCM"},
-            {"id": "cinere", "name": "RiDATOUR Terrace Cinere"},
-            {"id": "makassar", "name": "RiDATOUR Makassar"}
+            {"id": "RiDATOUR CCM", "name": "RiDATOUR CCM"},
+            {"id": "RiDATOUR Terrace Cinere", "name": "RiDATOUR Terrace Cinere"},
+            {"id": "RiDATOUR Makassar", "name": "RiDATOUR Makassar"}
         ]
+    }
+
+# ================== SLIDES/SETTINGS ROUTES ==================
+@api_router.get("/slides")
+async def get_slides():
+    """Get all active slides for login page - public endpoint"""
+    slides = await db.slides.find({"is_active": True}, {"_id": 0}).sort("order", 1).to_list(20)
+    return slides
+
+@api_router.get("/slides/all", response_model=List[SlideResponse])
+async def get_all_slides(user: dict = Depends(check_role(["super_admin"]))):
+    """Get all slides including inactive - admin only"""
+    slides = await db.slides.find({}, {"_id": 0}).sort("order", 1).to_list(100)
+    return slides
+
+@api_router.post("/slides", response_model=SlideResponse)
+async def create_slide(data: SlideCreate, file: UploadFile = File(...), user: dict = Depends(check_role(["super_admin"]))):
+    """Create a new slide with image upload"""
+    ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+    slide_id = str(uuid.uuid4())
+    path = f"{APP_NAME}/slides/{slide_id}.{ext}"
+    file_data = await file.read()
+    result = put_object(path, file_data, file.content_type or "image/jpeg")
+    
+    slide_dict = {
+        "id": slide_id,
+        "image_url": result["path"],
+        "title": data.title,
+        "description": data.description,
+        "order": data.order,
+        "is_active": True,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.slides.insert_one(slide_dict)
+    del slide_dict["_id"]
+    return slide_dict
+
+@api_router.put("/slides/{slide_id}")
+async def update_slide(slide_id: str, data: dict, user: dict = Depends(check_role(["super_admin"]))):
+    """Update slide details"""
+    await db.slides.update_one({"id": slide_id}, {"$set": data})
+    updated = await db.slides.find_one({"id": slide_id}, {"_id": 0})
+    return updated
+
+@api_router.delete("/slides/{slide_id}")
+async def delete_slide(slide_id: str, user: dict = Depends(check_role(["super_admin"]))):
+    """Delete a slide"""
+    await db.slides.delete_one({"id": slide_id})
+    return {"message": "Slide deleted"}
+
+@api_router.post("/slides/{slide_id}/image")
+async def update_slide_image(slide_id: str, file: UploadFile = File(...), user: dict = Depends(check_role(["super_admin"]))):
+    """Update slide image"""
+    ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+    path = f"{APP_NAME}/slides/{slide_id}_{uuid.uuid4()}.{ext}"
+    file_data = await file.read()
+    result = put_object(path, file_data, file.content_type or "image/jpeg")
+    
+    await db.slides.update_one({"id": slide_id}, {"$set": {"image_url": result["path"]}})
+    return {"message": "Image updated", "path": result["path"]}
+
+# ================== USER INVITE ROUTES ==================
+async def send_invite_email(email: str, full_name: str, invite_token: str, role: str):
+    """Send invitation email to new user"""
+    invite_url = f"{FRONTEND_URL}/accept-invite?token={invite_token}"
+    
+    html_content = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <img src="https://customer-assets.emergentagent.com/job_hajj-ops-1/artifacts/7t8146sg_logo-ridatour.png" alt="RiDATOUR" style="height: 60px;">
+        </div>
+        <h2 style="color: #6d28d9;">Welcome to RiDATOUR!</h2>
+        <p>Hello <strong>{full_name}</strong>,</p>
+        <p>You have been invited to join the RiDATOUR internal portal as <strong>{role.replace('_', ' ').title()}</strong>.</p>
+        <p>Click the button below to set your password and activate your account:</p>
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="{invite_url}" style="background-color: #6d28d9; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                Set Password & Activate Account
+            </a>
+        </div>
+        <p style="color: #666; font-size: 14px;">This invitation link will expire in 7 days.</p>
+        <p style="color: #666; font-size: 14px;">If you did not expect this invitation, please ignore this email.</p>
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+        <p style="color: #999; font-size: 12px; text-align: center;">
+            RiDATOUR - Treat you like family<br>
+            This is an automated message, please do not reply.
+        </p>
+    </div>
+    """
+    
+    params = {
+        "from": SENDER_EMAIL,
+        "to": [email],
+        "subject": "You're Invited to Join RiDATOUR Portal",
+        "html": html_content
+    }
+    
+    try:
+        email_result = await asyncio.to_thread(resend.Emails.send, params)
+        logger.info(f"Invite email sent to {email}: {email_result}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send invite email to {email}: {str(e)}")
+        return False
+
+@api_router.post("/invites", response_model=InviteResponse)
+async def create_invite(data: InviteCreate, user: dict = Depends(check_role(["super_admin"]))):
+    """Create and send user invitation - Super Admin only"""
+    # Check if email already exists
+    existing_user = await db.users.find_one({"email": data.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered as a user")
+    
+    existing_invite = await db.invites.find_one({"email": data.email, "status": "pending"})
+    if existing_invite:
+        raise HTTPException(status_code=400, detail="Pending invitation already exists for this email")
+    
+    invite_token = str(uuid.uuid4())
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    
+    invite_dict = {
+        "id": str(uuid.uuid4()),
+        "email": data.email,
+        "full_name": data.full_name,
+        "role": data.role,
+        "branch": data.branch,
+        "status": "pending",
+        "token": invite_token,
+        "invited_by": user["id"],
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "expires_at": expires_at.isoformat()
+    }
+    await db.invites.insert_one(invite_dict)
+    
+    # Send email
+    email_sent = await send_invite_email(data.email, data.full_name, invite_token, data.role)
+    if not email_sent:
+        logger.warning(f"Invite created but email failed for {data.email}")
+    
+    invite_dict["invited_by_name"] = user["full_name"]
+    del invite_dict["token"]
+    del invite_dict["_id"]
+    return invite_dict
+
+@api_router.get("/invites", response_model=List[InviteResponse])
+async def get_invites(user: dict = Depends(check_role(["super_admin"]))):
+    """Get all invitations"""
+    invites = await db.invites.find({}, {"_id": 0, "token": 0}).sort("created_at", -1).to_list(100)
+    for invite in invites:
+        inviter = await db.users.find_one({"id": invite["invited_by"]}, {"_id": 0})
+        invite["invited_by_name"] = inviter["full_name"] if inviter else None
+    return invites
+
+@api_router.delete("/invites/{invite_id}")
+async def delete_invite(invite_id: str, user: dict = Depends(check_role(["super_admin"]))):
+    """Cancel/delete an invitation"""
+    await db.invites.delete_one({"id": invite_id})
+    return {"message": "Invitation deleted"}
+
+@api_router.post("/invites/{invite_id}/resend")
+async def resend_invite(invite_id: str, user: dict = Depends(check_role(["super_admin"]))):
+    """Resend invitation email"""
+    invite = await db.invites.find_one({"id": invite_id}, {"_id": 0})
+    if not invite:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    if invite["status"] != "pending":
+        raise HTTPException(status_code=400, detail="Can only resend pending invitations")
+    
+    # Generate new token and extend expiry
+    new_token = str(uuid.uuid4())
+    new_expires = datetime.now(timezone.utc) + timedelta(days=7)
+    
+    await db.invites.update_one({"id": invite_id}, {"$set": {
+        "token": new_token,
+        "expires_at": new_expires.isoformat()
+    }})
+    
+    email_sent = await send_invite_email(invite["email"], invite["full_name"], new_token, invite["role"])
+    if not email_sent:
+        raise HTTPException(status_code=500, detail="Failed to send email")
+    
+    return {"message": "Invitation resent successfully"}
+
+@api_router.get("/invites/verify/{token}")
+async def verify_invite(token: str):
+    """Verify invitation token - public endpoint"""
+    invite = await db.invites.find_one({"token": token, "status": "pending"}, {"_id": 0})
+    if not invite:
+        raise HTTPException(status_code=404, detail="Invalid or expired invitation")
+    
+    expires_at = datetime.fromisoformat(invite["expires_at"].replace("Z", "+00:00"))
+    if datetime.now(timezone.utc) > expires_at:
+        await db.invites.update_one({"token": token}, {"$set": {"status": "expired"}})
+        raise HTTPException(status_code=400, detail="Invitation has expired")
+    
+    return {
+        "email": invite["email"],
+        "full_name": invite["full_name"],
+        "role": invite["role"],
+        "branch": invite["branch"]
+    }
+
+@api_router.post("/invites/accept")
+async def accept_invite(data: SetPasswordRequest):
+    """Accept invitation and set password - public endpoint"""
+    invite = await db.invites.find_one({"token": data.token, "status": "pending"}, {"_id": 0})
+    if not invite:
+        raise HTTPException(status_code=404, detail="Invalid or expired invitation")
+    
+    expires_at = datetime.fromisoformat(invite["expires_at"].replace("Z", "+00:00"))
+    if datetime.now(timezone.utc) > expires_at:
+        await db.invites.update_one({"token": data.token}, {"$set": {"status": "expired"}})
+        raise HTTPException(status_code=400, detail="Invitation has expired")
+    
+    # Create user
+    user_dict = {
+        "id": str(uuid.uuid4()),
+        "email": invite["email"],
+        "password": hash_password(data.password),
+        "full_name": invite["full_name"],
+        "role": invite["role"],
+        "branch": invite["branch"],
+        "phone": None,
+        "is_active": True,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.users.insert_one(user_dict)
+    
+    # Update invite status
+    await db.invites.update_one({"token": data.token}, {"$set": {"status": "accepted"}})
+    
+    # Generate token for auto-login
+    token = create_token(user_dict["id"], user_dict["email"], user_dict["role"], user_dict.get("branch"))
+    
+    del user_dict["password"]
+    del user_dict["_id"]
+    
+    return {
+        "message": "Account activated successfully",
+        "access_token": token,
+        "token_type": "bearer",
+        "user": user_dict
     }
 
 # ================== SEED DATA ==================
